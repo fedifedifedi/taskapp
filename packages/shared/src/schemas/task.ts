@@ -24,11 +24,20 @@ const descriptionSchema = z
   .transform((value) => (value === '' ? null : value))
   .nullable();
 
+/** Date d'échéance au format AAAA-MM-JJ ; une chaîne vide supprime l'échéance. */
+const dueDateSchema = z
+  .union([z.literal(''), z.iso.date("Date d'échéance invalide")], {
+    error: "Date d'échéance invalide",
+  })
+  .transform((value) => (value === '' ? null : value))
+  .nullable();
+
 export const createTaskSchema = z
   .object({
     title: titleSchema,
     description: descriptionSchema.optional(),
     status: taskStatusSchema.optional(),
+    dueDate: dueDateSchema.optional(),
   })
   .strict();
 
@@ -37,17 +46,27 @@ export const updateTaskSchema = z
     title: titleSchema.optional(),
     description: descriptionSchema.optional(),
     status: taskStatusSchema.optional(),
+    dueDate: dueDateSchema.optional(),
   })
   .strict()
   .refine((data) => Object.values(data).some((value) => value !== undefined), {
     message: 'Au moins un champ doit être fourni',
   });
 
-export const TASK_SORT_FIELDS = ['createdAt', 'updatedAt', 'title', 'status'] as const;
+export const TASK_SORT_FIELDS = ['createdAt', 'updatedAt', 'title', 'status', 'dueDate'] as const;
 export const TASK_SORT_VALUES = TASK_SORT_FIELDS.flatMap((field) => [field, `-${field}`] as const);
+
+export const TASK_SEARCH_MAX_LENGTH = 100;
 
 export const listTasksQuerySchema = z.object({
   status: taskStatusSchema.optional(),
+  /** Recherche (insensible à la casse) dans le titre et la description. */
+  q: z
+    .string()
+    .trim()
+    .max(TASK_SEARCH_MAX_LENGTH, 'Recherche trop longue')
+    .transform((value) => value || undefined)
+    .optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   sort: z.enum(TASK_SORT_VALUES).default('-createdAt'),

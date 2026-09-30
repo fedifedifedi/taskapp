@@ -36,6 +36,7 @@ export function TaskForm({ task, submitLabel, onSubmit, onCancel }: TaskFormProp
       title: task?.title ?? '',
       description: task?.description ?? '',
       status: task?.status ?? 'TODO',
+      dueDate: task?.dueDate ?? '',
     },
   });
 
@@ -45,7 +46,9 @@ export function TaskForm({ task, submitLabel, onSubmit, onCancel }: TaskFormProp
       await onSubmit(values);
       if (!task) reset();
     } catch (error) {
-      setFormError(applyServerErrors(error, setError, ['title', 'description', 'status']));
+      setFormError(
+        applyServerErrors(error, setError, ['title', 'description', 'status', 'dueDate']),
+      );
     }
   });
 
@@ -65,12 +68,20 @@ export function TaskForm({ task, submitLabel, onSubmit, onCancel }: TaskFormProp
         error={errors.description?.message}
         {...register('description')}
       />
-      <SelectField
-        label="Statut"
-        options={STATUS_OPTIONS}
-        error={errors.status?.message}
-        {...register('status')}
-      />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <SelectField
+          label="Statut"
+          options={STATUS_OPTIONS}
+          error={errors.status?.message}
+          {...register('status')}
+        />
+        <TextField
+          label="Échéance"
+          type="date"
+          error={errors.dueDate?.message}
+          {...register('dueDate')}
+        />
+      </div>
       <div className="flex justify-end gap-2">
         {onCancel && (
           <Button variant="secondary" onClick={onCancel}>

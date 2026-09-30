@@ -15,6 +15,10 @@ export function createTaskController(taskService: TaskService) {
       res.status(200).json(await taskService.list(getAuthUser(req).id, query));
     },
 
+    async stats(req: Request, res: Response) {
+      res.status(200).json({ data: await taskService.stats(getAuthUser(req).id) });
+    },
+
     async getById(req: Request, res: Response) {
       const { id } = taskIdParamsSchema.parse(req.params);
       res.status(200).json({ data: await taskService.getById(getAuthUser(req).id, id) });

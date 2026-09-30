@@ -43,6 +43,7 @@ export async function createTask(
     title: string;
     description: string | null;
     status: string;
+    dueDate: string | null;
     completedAt: string | null;
   };
 }

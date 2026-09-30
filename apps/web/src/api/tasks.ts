@@ -2,6 +2,8 @@ import type {
   CreateTaskInput,
   PaginatedResponse,
   TaskDto,
+  TaskSort,
+  TaskStatsDto,
   TaskStatus,
   UpdateTaskInput,
 } from '@taskapp/shared';
@@ -9,15 +11,24 @@ import { apiRequest } from './client';
 
 export interface TaskListParams {
   status?: TaskStatus;
+  q?: string;
+  sort?: TaskSort;
   page: number;
   limit: number;
 }
 
 export const tasksApi = {
-  list({ status, page, limit }: TaskListParams): Promise<PaginatedResponse<TaskDto>> {
+  list({ status, q, sort, page, limit }: TaskListParams): Promise<PaginatedResponse<TaskDto>> {
     const search = new URLSearchParams({ page: String(page), limit: String(limit) });
     if (status) search.set('status', status);
+    if (q) search.set('q', q);
+    if (sort) search.set('sort', sort);
     return apiRequest(`/tasks?${search.toString()}`);
+  },
+
+  async stats(): Promise<TaskStatsDto> {
+    const { data } = await apiRequest<{ data: TaskStatsDto }>('/tasks/stats');
+    return data;
   },
 
   async create(input: CreateTaskInput): Promise<TaskDto> {

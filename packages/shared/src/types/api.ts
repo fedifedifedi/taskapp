@@ -13,9 +13,17 @@ export interface TaskDto {
   title: string;
   description: string | null;
   status: TaskStatus;
+  /** Date d'échéance (AAAA-MM-JJ), sans heure. */
+  dueDate: string | null;
   completedAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Nombre de tâches de l'utilisateur, au total et par statut (tableau de bord). */
+export interface TaskStatsDto {
+  total: number;
+  byStatus: Record<TaskStatus, number>;
 }
 
 export interface PaginationMeta {

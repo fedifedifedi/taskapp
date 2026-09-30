@@ -17,8 +17,14 @@ export class TasksPage {
   readonly currentUser: Locator;
   readonly logoutButton: Locator;
   readonly filters: Locator;
+  readonly searchInput: Locator;
+  readonly sortSelect: Locator;
+  readonly progressBar: Locator;
 
   constructor(readonly page: Page) {
+    this.searchInput = page.getByRole('searchbox', { name: 'Rechercher une tâche' });
+    this.sortSelect = page.getByLabel('Trier par');
+    this.progressBar = page.getByRole('progressbar', { name: 'Progression' });
     this.heading = page.getByRole('heading', { name: /Mes tâches/ });
     this.createForm = page.getByRole('form', { name: 'Ajouter la tâche' });
     this.items = page.getByTestId('task-item');
@@ -44,8 +50,11 @@ export class TasksPage {
 
   async createTask(
     title: string,
-    options: { description?: string; status?: TaskStatusLabel } = {},
+    options: { description?: string; status?: TaskStatusLabel; dueDate?: string } = {},
   ) {
+    if (options.dueDate) {
+      await this.createForm.getByLabel('Échéance').fill(options.dueDate);
+    }
     await this.createForm.getByLabel('Titre').fill(title);
     if (options.description) {
       await this.createForm.getByLabel('Description (optionnelle)').fill(options.description);
@@ -65,17 +74,34 @@ export class TasksPage {
     );
   }
 
+  /** Carte du tableau de bord : TOTAL, TODO, IN_PROGRESS ou DONE. */
+  stat(key: 'TOTAL' | 'TODO' | 'IN_PROGRESS' | 'DONE'): Locator {
+    return this.page.getByTestId(`stat-${key}`);
+  }
+
+  titles(): Promise<string[]> {
+    return this.items.getByRole('heading', { level: 3 }).allTextContents();
+  }
+
+  async setTheme(label: 'Thème clair' | 'Thème sombre' | 'Thème du système') {
+    await this.page.getByRole('button', { name: label }).click();
+  }
+
   completionCheckbox(title: string): Locator {
     return this.task(title).getByRole('checkbox');
   }
 
-  async editTask(title: string, changes: { title?: string; description?: string }) {
+  async editTask(
+    title: string,
+    changes: { title?: string; description?: string; dueDate?: string },
+  ) {
     await this.page.getByRole('button', { name: `Modifier « ${title} »` }).click();
     const form = this.page.getByRole('form', { name: 'Enregistrer' });
     if (changes.title !== undefined) await form.getByLabel('Titre').fill(changes.title);
     if (changes.description !== undefined) {
       await form.getByLabel('Description (optionnelle)').fill(changes.description);
     }
+    if (changes.dueDate !== undefined) await form.getByLabel('Échéance').fill(changes.dueDate);
     await form.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(form).toBeHidden();
   }

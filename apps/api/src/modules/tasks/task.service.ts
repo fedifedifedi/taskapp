@@ -3,11 +3,12 @@ import type {
   ListTasksQuery,
   PaginatedResponse,
   TaskDto,
+  TaskStatsDto,
   TaskStatus,
   UpdateTaskInput,
 } from '@taskapp/shared';
 import { NotFoundError } from '../../lib/errors.js';
-import { toTaskDto } from './task.mapper.js';
+import { toDbDate, toTaskDto } from './task.mapper.js';
 import type { TaskRepository, UpdateTaskData } from './task.repository.js';
 
 const TASK_NOT_FOUND = 'Tâche introuvable';
@@ -39,6 +40,7 @@ export function createTaskService(tasks: TaskRepository) {
       const { tasks: items, total } = await tasks.findMany({
         userId,
         status: query.status,
+        search: query.q,
         sort: query.sort,
         skip: (query.page - 1) * query.limit,
         take: query.limit,
@@ -54,6 +56,16 @@ export function createTaskService(tasks: TaskRepository) {
       };
     },
 
+    async stats(userId: string): Promise<TaskStatsDto> {
+      const counts = await tasks.countByStatus(userId);
+      const byStatus = {
+        TODO: counts.TODO ?? 0,
+        IN_PROGRESS: counts.IN_PROGRESS ?? 0,
+        DONE: counts.DONE ?? 0,
+      };
+      return { total: byStatus.TODO + byStatus.IN_PROGRESS + byStatus.DONE, byStatus };
+    },
+
     async getById(userId: string, taskId: string): Promise<TaskDto> {
       return toTaskDto(await getOwnedTask(userId, taskId));
     },
@@ -66,6 +78,7 @@ export function createTaskService(tasks: TaskRepository) {
         description: input.description ?? null,
         status,
         completedAt: resolveCompletedAt(status, null),
+        ...(input.dueDate !== undefined && { dueDate: toDbDate(input.dueDate) }),
       });
       return toTaskDto(task);
     },
@@ -75,6 +88,7 @@ export function createTaskService(tasks: TaskRepository) {
       const data: UpdateTaskData = {};
       if (input.title !== undefined) data.title = input.title;
       if (input.description !== undefined) data.description = input.description;
+      if (input.dueDate !== undefined) data.dueDate = toDbDate(input.dueDate);
       if (input.status !== undefined) {
         data.status = input.status;
         data.completedAt = resolveCompletedAt(input.status, existing);

@@ -9,6 +9,8 @@ export function createTaskRouter(controller: TaskController): Router {
 
   router.get('/', controller.list);
   router.post('/', controller.create);
+  // Déclarée avant /:id pour ne pas être interprétée comme un identifiant.
+  router.get('/stats', controller.stats);
   router.get('/:id', controller.getById);
   router.patch('/:id', controller.update);
   router.patch('/:id/complete', controller.complete);

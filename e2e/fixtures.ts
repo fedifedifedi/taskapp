@@ -45,7 +45,12 @@ export { expect };
 /** Crée des tâches via l'API (préparation rapide, hors du parcours testé). */
 export async function seedTasks(
   page: Page,
-  tasks: { title: string; status?: 'TODO' | 'IN_PROGRESS' | 'DONE'; description?: string }[],
+  tasks: {
+    title: string;
+    status?: 'TODO' | 'IN_PROGRESS' | 'DONE';
+    description?: string;
+    dueDate?: string;
+  }[],
 ) {
   for (const task of tasks) {
     const res = await page.request.post('/api/v1/tasks', { data: task });

@@ -7,8 +7,8 @@ import {
   type TextareaHTMLAttributes,
 } from 'react';
 
-const FIELD_CLASSES =
-  'block w-full rounded-md border-0 px-3 py-2 text-sm text-slate-900 shadow-sm ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600';
+export const FIELD_CLASSES =
+  'block w-full rounded-lg border-0 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm ring-1 ring-inset transition placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500';
 
 interface FieldWrapperProps {
   id: string;
@@ -19,13 +19,13 @@ interface FieldWrapperProps {
 
 function FieldWrapper({ id, label, error, children }: FieldWrapperProps) {
   return (
-    <div className="space-y-1">
-      <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+    <div className="space-y-1.5">
+      <label htmlFor={id} className="block text-sm font-medium text-slate-700 dark:text-slate-300">
         {label}
       </label>
       {children}
       {error && (
-        <p id={`${id}-error`} role="alert" className="text-sm text-red-600">
+        <p id={`${id}-error`} role="alert" className="text-sm text-red-600 dark:text-red-400">
           {error}
         </p>
       )}
@@ -33,8 +33,8 @@ function FieldWrapper({ id, label, error, children }: FieldWrapperProps) {
   );
 }
 
-function ringClass(error?: string) {
-  return error ? 'ring-red-400' : 'ring-slate-300';
+export function ringClass(error?: string) {
+  return error ? 'ring-red-400 dark:ring-red-500/70' : 'ring-slate-300 dark:ring-slate-700';
 }
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -81,7 +81,7 @@ export function TextAreaField({
         rows={rows}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={`${FIELD_CLASSES} ${ringClass(error)}`}
+        className={`${FIELD_CLASSES} ${ringClass(error)} resize-y`}
         {...props}
       />
     </FieldWrapper>
@@ -100,7 +100,7 @@ export function SelectField({ label, error, options, id: idProp, ...props }: Sel
   const id = idProp ?? generatedId;
   return (
     <FieldWrapper id={id} label={label} error={error}>
-      <select id={id} className={`${FIELD_CLASSES} ${ringClass(error)} bg-white`} {...props}>
+      <select id={id} className={`${FIELD_CLASSES} ${ringClass(error)}`} {...props}>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}

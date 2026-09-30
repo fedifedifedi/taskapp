@@ -1,6 +1,6 @@
 # TaskApp — Gestion de tâches
 
-Application web de gestion de tâches : inscription / connexion, CRUD des tâches, statut (`TODO`, `IN_PROGRESS`, `DONE`), filtrage et pagination.
+Application web de gestion de tâches : inscription / connexion, CRUD des tâches, statut (`TODO`, `IN_PROGRESS`, `DONE`), date d'échéance avec détection des retards, recherche, filtrage, tri et pagination. L'interface propose un tableau de bord (compteurs et progression) et un mode sombre.
 
 - **API REST** : Node.js, Express 5, TypeScript, Prisma 7, PostgreSQL
 - **Frontend** : React 19, Vite, TanStack Query, React Hook Form, Tailwind CSS
@@ -97,7 +97,10 @@ Les tests E2E s'exécutent contre le **build de production**. Playwright appliqu
 
 - **Page Objects** (`e2e/pages`) : `LoginPage`, `RegisterPage`, `TasksPage`, avec des sélecteurs accessibles (rôles et libellés).
 - **Fixtures** (`e2e/fixtures.ts`) : chaque test utilise un utilisateur unique, ce qui permet l'exécution en parallèle. Les données de départ sont créées via l'API pour aller plus vite.
-- **14 scénarios** : redirection sans session, validation, inscription, déconnexion, mauvais mot de passe, reconnexion, cookie `httpOnly`, création, titre vide, terminer / rouvrir, filtres, filtre conservé au rechargement, modification, suppression avec confirmation.
+- **19 scénarios** :
+  - redirection sans session, validation, inscription, déconnexion, mauvais mot de passe, reconnexion, cookie `httpOnly` ;
+  - création, titre vide, terminer / rouvrir, filtres, filtre conservé au rechargement, modification, suppression avec confirmation ;
+  - recherche, échéances et retards, tri par échéance, tableau de bord, mode sombre.
 - **En cas d'échec** : trace et capture d'écran (vidéo en CI) dans `e2e/test-results`. Rapport HTML en CI.
 - Pour utiliser un navigateur déjà installé au lieu du Chromium de Playwright : `PW_CHANNEL=msedge` ou `PW_CHANNEL=chrome`.
 
@@ -186,7 +189,8 @@ Mise en place :
 | `name`         | 100 car. max          | `title`       | 1 à 200 caractères                 |
 | `passwordHash` | argon2id              | `description` | optionnelle, 2000 car. max         |
 | `createdAt`    |                       | `status`      | `TODO` \| `IN_PROGRESS` \| `DONE`  |
-| `updatedAt`    |                       | `completedAt` | défini au passage à `DONE`         |
+| `updatedAt`    |                       | `dueDate`     | optionnelle (`DATE`, sans heure)   |
+|                |                       | `completedAt` | défini au passage à `DONE`         |
 |                |                       | `createdAt`   |                                    |
 |                |                       | `updatedAt`   |                                    |
 
@@ -203,6 +207,7 @@ Préfixe : `/api/v1`. Toutes les routes `/tasks` exigent une session.
 | POST    | `/auth/logout`        | Déconnexion                    | 204    |
 | GET     | `/auth/me`            | Utilisateur courant            | 200    |
 | GET     | `/tasks`              | Liste paginée et filtrée       | 200    |
+| GET     | `/tasks/stats`        | Compteurs par statut           | 200    |
 | POST    | `/tasks`              | Création                       | 201    |
 | GET     | `/tasks/:id`          | Détail                         | 200    |
 | PATCH   | `/tasks/:id`          | Modification partielle         | 200    |
@@ -210,7 +215,14 @@ Préfixe : `/api/v1`. Toutes les routes `/tasks` exigent une session.
 | DELETE  | `/tasks/:id`          | Suppression                    | 204    |
 | GET     | `/api/health`         | Santé de l'API et de la base   | 200    |
 
-**Paramètres de `GET /tasks`** : `status` (`TODO` \| `IN_PROGRESS` \| `DONE`), `page` (≥ 1), `limit` (1 à 100, 20 par défaut), `sort` (`createdAt`, `updatedAt`, `title`, `status`, préfixés par `-` pour un tri décroissant ; `-createdAt` par défaut).
+**Paramètres de `GET /tasks`** :
+
+- `status` : `TODO` \| `IN_PROGRESS` \| `DONE` ;
+- `q` : recherche dans le titre et la description, insensible à la casse, 100 caractères maximum ;
+- `page` : 1 ou plus ; `limit` : de 1 à 100, 20 par défaut ;
+- `sort` : `createdAt`, `updatedAt`, `title`, `status` ou `dueDate`, préfixé par `-` pour un tri décroissant ; `-createdAt` par défaut. Avec `dueDate`, les tâches sans échéance sont toujours placées à la fin.
+
+**Échéance** : champ `dueDate` au format `AAAA-MM-JJ` à la création et à la modification. Une valeur `""` ou `null` supprime l'échéance.
 
 **Réponses** : `{ "data": … }`, et pour une liste `{ "data": [...], "meta": { page, limit, total, totalPages } }`.
 

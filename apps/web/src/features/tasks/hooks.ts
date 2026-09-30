@@ -12,6 +12,11 @@ export function useTasks(params: TaskListParams) {
   });
 }
 
+/** Compteurs du tableau de bord (rechargés avec les listes après chaque écriture). */
+export function useTaskStats() {
+  return useQuery({ queryKey: [...TASKS_KEY, 'stats'], queryFn: tasksApi.stats });
+}
+
 /** Après chaque écriture, les listes sont rechargées (filtres et pagination restent justes). */
 function useInvalidateTasks() {
   const queryClient = useQueryClient();

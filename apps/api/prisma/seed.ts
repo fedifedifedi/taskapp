@@ -13,6 +13,14 @@ async function main() {
     create: { email: DEMO_EMAIL, name: 'Utilisateur démo', passwordHash },
   });
 
+  // Échéances relatives à aujourd'hui : en retard, aujourd'hui, à venir.
+  const inDays = (days: number) => {
+    const date = new Date();
+    date.setUTCHours(0, 0, 0, 0);
+    date.setUTCDate(date.getUTCDate() + days);
+    return date;
+  };
+
   await prisma.task.deleteMany({ where: { userId: user.id } });
   await prisma.task.createMany({
     data: [
@@ -21,14 +29,30 @@ async function main() {
         title: 'Lire le cahier des charges',
         status: 'DONE',
         completedAt: new Date(),
+        dueDate: inDays(-2),
       },
       {
         userId: user.id,
         title: "Concevoir l'architecture",
         description: 'Monorepo, API Express, SPA React',
         status: 'IN_PROGRESS',
+        dueDate: inDays(0),
       },
-      { userId: user.id, title: 'Écrire les tests E2E', description: 'Playwright', status: 'TODO' },
+      {
+        userId: user.id,
+        title: 'Écrire les tests E2E',
+        description: 'Playwright, Page Objects',
+        status: 'TODO',
+        dueDate: inDays(3),
+      },
+      {
+        userId: user.id,
+        title: 'Préparer la démo',
+        description: 'Scénario de présentation au recruteur',
+        status: 'TODO',
+        dueDate: inDays(-1),
+      },
+      { userId: user.id, title: 'Configurer Railway', status: 'TODO' },
     ],
   });
 

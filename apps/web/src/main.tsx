@@ -5,16 +5,19 @@ import { BrowserRouter } from 'react-router';
 import { App } from './App';
 import './index.css';
 import { createQueryClient } from './lib/query-client';
+import { ThemeProvider } from './lib/theme';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Élément #root introuvable');
 
 createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={createQueryClient()}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={createQueryClient()}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ThemeProvider>
   </StrictMode>,
 );

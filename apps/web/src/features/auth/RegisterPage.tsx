@@ -42,10 +42,14 @@ export function RegisterPage() {
   return (
     <AuthCard
       title="Créer un compte"
+      subtitle="Quelques secondes suffisent pour commencer à vous organiser."
       footer={
         <>
           Déjà inscrit ?{' '}
-          <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500">
+          <Link
+            to="/login"
+            className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+          >
             Se connecter
           </Link>
         </>
@@ -73,7 +77,7 @@ export function RegisterPage() {
           error={errors.password?.message}
           {...register('password')}
         />
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           Au moins {PASSWORD_MIN_LENGTH} caractères, avec au moins une lettre et un chiffre.
         </p>
         <Button type="submit" loading={registerUser.isPending} className="w-full">

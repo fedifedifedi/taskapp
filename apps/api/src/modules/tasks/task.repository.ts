@@ -4,6 +4,7 @@ import type { Prisma, PrismaClient, Task } from '../../generated/prisma/client.j
 export interface FindTasksOptions {
   userId: string;
   status?: TaskStatus;
+  search?: string;
   skip: number;
   take: number;
   sort: TaskSort;
@@ -15,6 +16,7 @@ export interface CreateTaskData {
   description: string | null;
   status: TaskStatus;
   completedAt: Date | null;
+  dueDate?: Date | null;
 }
 
 export type UpdateTaskData = Partial<Omit<CreateTaskData, 'userId'>>;
@@ -22,8 +24,11 @@ export type UpdateTaskData = Partial<Omit<CreateTaskData, 'userId'>>;
 function toOrderBy(sort: TaskSort): Prisma.TaskOrderByWithRelationInput[] {
   const direction = sort.startsWith('-') ? 'desc' : 'asc';
   const field = sort.replace(/^-/, '') as keyof Prisma.TaskOrderByWithRelationInput;
+  // Les tâches sans échéance sont toujours placées après celles qui en ont une.
+  const primary =
+    field === 'dueDate' ? { dueDate: { sort: direction, nulls: 'last' } } : { [field]: direction };
   // Tri secondaire sur l'id : ordre stable entre les pages.
-  return [{ [field]: direction }, { id: 'asc' }];
+  return [primary as Prisma.TaskOrderByWithRelationInput, { id: 'asc' }];
 }
 
 /**
@@ -36,6 +41,12 @@ export function createTaskRepository(prisma: PrismaClient) {
       const where: Prisma.TaskWhereInput = {
         userId: options.userId,
         ...(options.status && { status: options.status }),
+        ...(options.search && {
+          OR: [
+            { title: { contains: options.search, mode: 'insensitive' } },
+            { description: { contains: options.search, mode: 'insensitive' } },
+          ],
+        }),
       };
       const [tasks, total] = await prisma.$transaction([
         prisma.task.findMany({
@@ -47,6 +58,15 @@ export function createTaskRepository(prisma: PrismaClient) {
         prisma.task.count({ where }),
       ]);
       return { tasks, total };
+    },
+
+    async countByStatus(userId: string): Promise<Partial<Record<TaskStatus, number>>> {
+      const groups = await prisma.task.groupBy({
+        by: ['status'],
+        where: { userId },
+        _count: { _all: true },
+      });
+      return Object.fromEntries(groups.map((group) => [group.status, group._count._all]));
     },
 
     findByIdForUser(id: string, userId: string): Promise<Task | null> {

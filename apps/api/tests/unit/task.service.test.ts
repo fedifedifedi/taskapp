@@ -15,6 +15,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     title: 'Tâche',
     description: null,
     status: 'TODO',
+    dueDate: null,
     completedAt: null,
     createdAt: date,
     updatedAt: date,
@@ -25,6 +26,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 function makeRepository(existing: Task | null = makeTask()) {
   return {
     findMany: vi.fn(),
+    countByStatus: vi.fn(),
     findByIdForUser: vi.fn().mockResolvedValue(existing),
     create: vi.fn(async (data) => makeTask(data)),
     update: vi.fn(async (_id, data) => makeTask({ ...existing, ...data })),

@@ -36,10 +36,14 @@ export function LoginPage() {
   return (
     <AuthCard
       title="Connexion"
+      subtitle="Heureux de vous revoir ! Connectez-vous pour retrouver vos tâches."
       footer={
         <>
           Pas encore de compte ?{' '}
-          <Link to="/register" className="font-semibold text-indigo-600 hover:text-indigo-500">
+          <Link
+            to="/register"
+            className="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+          >
             Créer un compte
           </Link>
         </>

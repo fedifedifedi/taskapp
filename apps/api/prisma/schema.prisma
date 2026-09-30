@@ -36,6 +36,8 @@ model Task {
   title       String     @db.VarChar(200)
   description String?    @db.VarChar(2000)
   status      TaskStatus @default(TODO)
+  /// Date d'échéance optionnelle (jour, sans heure).
+  dueDate     DateTime?  @map("due_date") @db.Date
   /// Renseigné quand la tâche passe au statut DONE, remis à null sinon.
   completedAt DateTime?  @map("completed_at") @db.Timestamptz(3)
   createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
