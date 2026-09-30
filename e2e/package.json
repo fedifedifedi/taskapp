@@ -1,0 +1,17 @@
+{
+  "name": "@taskapp/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tests End-to-End Playwright (exécutés contre le build de production)",
+  "type": "module",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "report": "playwright show-report",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^24.0.0"
+  }
+}

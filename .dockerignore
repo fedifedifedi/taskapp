@@ -1,0 +1,23 @@
+# Dépendances et builds : réinstallés / reconstruits dans l'image
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+apps/api/src/generated
+
+# Secrets : jamais dans l'image
+**/.env
+**/.env.*
+!**/.env.example
+
+# Tests, rapports, outillage
+**/coverage
+**/playwright-report
+**/test-results
+**/blob-report
+.git
+.github
+.vscode
+.idea
+*.log
+Dockerfile
+.dockerignore
