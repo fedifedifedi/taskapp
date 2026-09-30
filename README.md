@@ -40,6 +40,15 @@ npm run dev
 
 Ouvrir http://localhost:5173. En développement, Vite redirige `/api` vers l'API : le navigateur ne voit qu'une seule origine, comme en production.
 
+### Accès rapide
+
+| Quoi            | Commande            | Adresse               |
+| --------------- | ------------------- | --------------------- |
+| Application     | `npm run dev`       | http://localhost:5173 |
+| Base de données | `npm run db:studio` | http://localhost:5555 |
+
+Compte de démonstration (après `npm run db:seed`) : `demo@taskapp.local` / `Demo12345`.
+
 ### Mode production en local
 
 ```bash
