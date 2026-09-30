@@ -6,7 +6,7 @@ on:
   pull_request:
   workflow_dispatch:
 
-# Une nouvelle exécution sur la même branche annule la précédente.
+# Une nouvelle exÃ©cution sur la mÃªme branche annule la prÃ©cÃ©dente.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -25,8 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -34,11 +34,11 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck
-      # Seuil "critical" : les alertes "high" connues de la CLI Prisma sont documentées dans le README.
+      # Seuil "critical" : les alertes "high" connues de la CLI Prisma sont documentÃ©es dans le README.
       - run: npm audit --omit=dev --audit-level=critical
 
   test:
-    name: Tests unitaires et d'intégration
+    name: Tests unitaires et d'intÃ©gration
     runs-on: ubuntu-latest
     timeout-minutes: 10
     services:
@@ -55,8 +55,8 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -65,7 +65,7 @@ jobs:
       - run: npm run test -w @taskapp/shared
       - name: Rapport de couverture
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: apps/api/coverage/
@@ -90,8 +90,8 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -102,14 +102,14 @@ jobs:
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Cache des navigateurs Playwright
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - name: Installation de Chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
-      - name: Dépendances système de Chromium (cache présent)
+      - name: DÃ©pendances systÃ¨me de Chromium (cache prÃ©sent)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
@@ -117,7 +117,7 @@ jobs:
 
       - name: Rapport Playwright
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: |
@@ -147,10 +147,10 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/taskapp
       JWT_SECRET: ci-smoke-secret-with-at-least-thirty-two-characters
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
       - name: Build de l'image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           load: true
@@ -158,19 +158,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Même commande que le pre-deploy Railway.
+      # MÃªme commande que le pre-deploy Railway.
       - name: Migrations depuis l'image
         run: >-
           docker run --rm --network host -e DATABASE_URL
           taskapp:ci npm run db:deploy
 
-      - name: Démarrage du conteneur
+      - name: DÃ©marrage du conteneur
         run: >-
           docker run -d --name taskapp --network host
           -e DATABASE_URL -e JWT_SECRET -e PORT=3000
           taskapp:ci
 
-      - name: Smoke test (santé, SPA, inscription, utilisateur non root)
+      - name: Smoke test (santÃ©, SPA, inscription, utilisateur non root)
         run: |
           for i in $(seq 1 30); do
             curl -fsS http://localhost:3000/api/health && break
